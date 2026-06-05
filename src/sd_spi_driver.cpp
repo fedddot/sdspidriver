@@ -102,7 +102,7 @@ void SdSpiDriver::init_sd_v1() {
 void SdSpiDriver::init_sd_v2() {
     m_sd_type = SdType::SD2;
     std::array<std::uint8_t, 1> acmd41_response;
-    std::size_t attempt = 10000UL;
+    auto attempt = m_max_idle_data_cycles;
     while (attempt--) {
         const auto cmd55_response = send_command<1>(SdCommand::CMD55, 0, m_max_r1_receive_attempts);
         if (cmd55_response[0] > 1) {
