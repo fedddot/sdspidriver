@@ -38,8 +38,8 @@ namespace sdspidriver {
             if (m_low_spi_speed_hz == 0 || m_high_spi_speed_hz == 0) {
                 throw std::invalid_argument("SPI speed must be greater than 0");
             }
-            if (m_max_r1_receive_attempts == 0) {
-                throw std::invalid_argument("max_r1_receive_attempts must be greater than 0");
+            if (m_max_r1_receive_attempts == 0 || m_max_idle_data_cycles == 0) {
+                throw std::invalid_argument("max attempts must be greater than 0");
             }
             m_spi_init();
             init_card();
@@ -47,6 +47,8 @@ namespace sdspidriver {
         }
         SdSpiDriver(const SdSpiDriver&) = default;
         SdSpiDriver& operator=(const SdSpiDriver&) = delete;
+        SdSpiDriver(SdSpiDriver&&) = default;
+        SdSpiDriver& operator=(SdSpiDriver&&) = delete;
         ~SdSpiDriver() noexcept = default;
         
         std::array<std::uint8_t, BLOCK_SIZE> read_block(const std::uint32_t block_address) const;
