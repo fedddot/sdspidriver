@@ -8,6 +8,8 @@ The project is inspired by [ulibSD](https://github.com/1nv1/ulibSD), but simplif
 
 The driver is platform-agnostic: SPI communication is provided entirely through callbacks (init, set speed, transceive byte, chip select), making it straightforward to integrate on any platform or RTOS without depending on a specific HAL.
 
+The block-level read/write API maps naturally onto a [FatFs](https://github.com/abbrev/fatfs) disk I/O backend, making it easy to add full filesystem support to embedded projects with minimal glue code.
+
 ## Integration
 
 ### With CMake FetchContent
