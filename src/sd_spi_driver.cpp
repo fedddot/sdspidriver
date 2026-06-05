@@ -14,8 +14,7 @@ std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE> SdSpiDriver::read_block(const 
     if (cmd17_response[0] != 0x00) {
         throw std::runtime_error("Failed to read SD card block: CMD17 did not return expected response");
     }
-    enum: std::uint64_t { DATA_TOKEN_MAX_ATTEMPTS = 500000UL };
-    auto attempts_remaining = std::uint64_t(DATA_TOKEN_MAX_ATTEMPTS);
+    auto attempts_remaining = std::uint64_t(m_max_idle_data_cycles);
     auto data_token = std::uint8_t(0xFF);
     while (attempts_remaining) {
         data_token = m_trancieve_byte(0xFF);
@@ -39,7 +38,7 @@ std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE> SdSpiDriver::read_block(const 
 }
 
 void SdSpiDriver::write_block(const std::uint32_t block_address, const std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE>& data) const {
-    release_card(500000UL);
+    release_card(m_max_idle_data_cycles);
     const auto address = calculate_address(block_address, m_address_mode);
     const auto cmd24_response = send_command<1>(SdCommand::CMD24, address, m_max_r1_receive_attempts);
     if (cmd24_response[0] != 0x00) {

@@ -28,9 +28,10 @@ namespace sdspidriver {
             const TrancieveByte& trancieve_byte,
             const ChipSelector& chip_selector,
             const std::uint32_t max_r1_receive_attempts = 100UL,
+            const std::uint32_t max_idle_data_cycles = 500000UL,
             const std::uint32_t low_spi_speed_hz = 400000UL,
             const std::uint32_t high_spi_speed_hz = 25000000UL
-        ): m_spi_init(spi_init), m_set_spi_speed(set_spi_speed), m_trancieve_byte(trancieve_byte), m_chip_selector(chip_selector), m_max_r1_receive_attempts(max_r1_receive_attempts), m_low_spi_speed_hz(low_spi_speed_hz), m_high_spi_speed_hz(high_spi_speed_hz) {
+        ): m_spi_init(spi_init), m_set_spi_speed(set_spi_speed), m_trancieve_byte(trancieve_byte), m_chip_selector(chip_selector), m_max_r1_receive_attempts(max_r1_receive_attempts), m_max_idle_data_cycles(max_idle_data_cycles), m_low_spi_speed_hz(low_spi_speed_hz), m_high_spi_speed_hz(high_spi_speed_hz) {
             if (!m_spi_init || !m_set_spi_speed || !m_trancieve_byte || !m_chip_selector) {
                 throw std::invalid_argument("invalid callback function");
             }
@@ -89,6 +90,7 @@ namespace sdspidriver {
         
         // Params
         const std::size_t m_max_r1_receive_attempts;
+        const std::uint32_t m_max_idle_data_cycles;
         const std::uint32_t m_low_spi_speed_hz;
         const std::uint32_t m_high_spi_speed_hz;
 
