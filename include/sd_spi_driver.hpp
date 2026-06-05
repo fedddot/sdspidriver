@@ -8,20 +8,37 @@
 #include <stdexcept>
 
 namespace sdspidriver {
+    /// @brief SPI-mode SD card driver supporting SD v1, SD v2, and MMC cards.
     class SdSpiDriver {
     public:
         enum: std::size_t {
             BLOCK_SIZE = 512UL
         };
+
+        /// @brief State of the SPI chip-select line.
         enum class ChipSelectState: int {
             SELECTED = 0,
             UNSELECTED = 1
         };
+
+        /// @brief Callback that initialises the SPI peripheral.
         using SpiInit = std::function<void(void)>;
+        /// @brief Callback that sets the SPI clock frequency in Hz.
         using SetSpiSpeed = std::function<void(const std::uint32_t speed_hz)>;
+        /// @brief Callback that transmits one byte and returns the received byte.
         using TrancieveByte = std::function<std::uint8_t(const std::uint8_t byte)>;
+        /// @brief Callback that drives the chip-select line to the given state.
         using ChipSelector = std::function<void(const ChipSelectState state)>;
 
+        /// @brief Constructs and initialises an SD card driver over SPI.
+        /// @param spi_init Callback invoked once to initialise the SPI peripheral.
+        /// @param set_spi_speed Callback used to change the SPI clock frequency.
+        /// @param trancieve_byte Callback that sends and receives a single byte.
+        /// @param chip_selector Callback that controls the chip-select line.
+        /// @param max_r1_receive_attempts Maximum polling attempts when waiting for an R1 response byte.
+        /// @param max_idle_data_cycles Maximum dummy-clock cycles sent while waiting for the card to become ready.
+        /// @param low_spi_speed_hz SPI clock frequency used during card initialisation.
+        /// @param high_spi_speed_hz SPI clock frequency used for normal data transfers.
         SdSpiDriver(
             const SpiInit& spi_init,
             const SetSpiSpeed& set_spi_speed,
@@ -51,9 +68,18 @@ namespace sdspidriver {
         SdSpiDriver& operator=(SdSpiDriver&&) = delete;
         ~SdSpiDriver() noexcept = default;
         
+        /// @brief Reads one 512-byte block from the card.
+        /// @param block_address Zero-based block index to read.
+        /// @return The raw 512-byte contents of the requested block.
         std::array<std::uint8_t, BLOCK_SIZE> read_block(const std::uint32_t block_address) const;
+
+        /// @brief Writes one 512-byte block to the card.
+        /// @param block_address Zero-based block index to write.
+        /// @param data 512-byte buffer whose contents are written to the card.
         void write_block(const std::uint32_t block_address, const std::array<std::uint8_t, BLOCK_SIZE>& data) const;
 
+        /// @brief Returns the total number of 512-byte blocks on the card.
+        /// @return Total block count as reported by the card's CSD register.
         std::uint64_t total_blocks() const {
             return m_total_blocks;
         }
