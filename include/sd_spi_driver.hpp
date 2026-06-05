@@ -7,7 +7,7 @@
 #include <functional>
 #include <stdexcept>
 
-namespace sd_spi_driver {
+namespace sdspidriver {
     class SdSpiDriver {
     public:
         enum: std::size_t {

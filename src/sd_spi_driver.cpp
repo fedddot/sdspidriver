@@ -5,7 +5,7 @@
 
 #include "sd_spi_driver.hpp"
 
-using namespace sd_spi_driver;
+using namespace sdspidriver;
 
 std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE> SdSpiDriver::read_block(const std::uint32_t block_address) const {
     release_card(500000UL);
