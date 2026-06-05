@@ -20,20 +20,18 @@ namespace sd_spi_driver {
         using SpiInit = std::function<void(void)>;
         using SetSpiSpeed = std::function<void(const std::uint32_t speed_hz)>;
         using TrancieveByte = std::function<std::uint8_t(const std::uint8_t byte)>;
-        using Delay = std::function<void(const std::size_t ms)>;
         using ChipSelector = std::function<void(const ChipSelectState state)>;
 
         SdSpiDriver(
             const SpiInit& spi_init,
             const SetSpiSpeed& set_spi_speed,
             const TrancieveByte& trancieve_byte,
-            const Delay& delay,
             const ChipSelector& chip_selector,
             const std::uint32_t max_r1_receive_attempts = 100UL,
             const std::uint32_t low_spi_speed_hz = 400000UL,
             const std::uint32_t high_spi_speed_hz = 25000000UL
-        ): m_spi_init(spi_init), m_set_spi_speed(set_spi_speed), m_trancieve_byte(trancieve_byte), m_delay(delay), m_chip_selector(chip_selector), m_max_r1_receive_attempts(max_r1_receive_attempts), m_low_spi_speed_hz(low_spi_speed_hz), m_high_spi_speed_hz(high_spi_speed_hz) {
-            if (!m_spi_init || !m_set_spi_speed || !m_trancieve_byte || !m_delay || !m_chip_selector) {
+        ): m_spi_init(spi_init), m_set_spi_speed(set_spi_speed), m_trancieve_byte(trancieve_byte), m_chip_selector(chip_selector), m_max_r1_receive_attempts(max_r1_receive_attempts), m_low_spi_speed_hz(low_spi_speed_hz), m_high_spi_speed_hz(high_spi_speed_hz) {
+            if (!m_spi_init || !m_set_spi_speed || !m_trancieve_byte || !m_chip_selector) {
                 throw std::invalid_argument("invalid callback function");
             }
             if (m_low_spi_speed_hz == 0 || m_high_spi_speed_hz == 0) {
@@ -66,7 +64,6 @@ namespace sd_spi_driver {
             BYTE_ADDRESSING,
             BLOCK_ADDRESSING
         };
-
         enum class SdCommand: std::uint8_t {
             CMD0 = 0x40 + 0,
             CMD1 = 0x40 + 1,
@@ -81,14 +78,16 @@ namespace sd_spi_driver {
             ACMD41 = 0x40 + 41
         };
 
+        // Callbacks
         SpiInit m_spi_init;
         SetSpiSpeed m_set_spi_speed;
         TrancieveByte m_trancieve_byte;
-        Delay m_delay;
         ChipSelector m_chip_selector;
         SdType m_sd_type;
         AddressMode m_address_mode;
         std::uint64_t m_total_blocks;
+        
+        // Params
         const std::size_t m_max_r1_receive_attempts;
         const std::uint32_t m_low_spi_speed_hz;
         const std::uint32_t m_high_spi_speed_hz;
