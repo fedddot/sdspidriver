@@ -10,7 +10,7 @@ using namespace sd_spi_driver;
 std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE> SdSpiDriver::read_block(const std::uint32_t block_address) const {
     release_card(500000UL);
     const auto address = calculate_address(block_address, m_address_mode);
-    const auto cmd17_response = send_command<1>(SdCommand::CMD17, address, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd17_response = send_command<1>(SdCommand::CMD17, address, m_max_r1_receive_attempts);
     if (cmd17_response[0] != 0x00) {
         throw std::runtime_error("Failed to read SD card block: CMD17 did not return expected response");
     }
@@ -41,7 +41,7 @@ std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE> SdSpiDriver::read_block(const 
 void SdSpiDriver::write_block(const std::uint32_t block_address, const std::array<std::uint8_t, SdSpiDriver::BLOCK_SIZE>& data) const {
     release_card(500000UL);
     const auto address = calculate_address(block_address, m_address_mode);
-    const auto cmd24_response = send_command<1>(SdCommand::CMD24, address, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd24_response = send_command<1>(SdCommand::CMD24, address, m_max_r1_receive_attempts);
     if (cmd24_response[0] != 0x00) {
         throw std::runtime_error("Failed to write SD card block: CMD24 did not return expected response");
     }
@@ -69,7 +69,7 @@ void SdSpiDriver::write_block(const std::uint32_t block_address, const std::arra
 }
 
 void SdSpiDriver::init_card() {
-    m_set_spi_speed(SpiSpeed::LOW_SPEED);
+    m_set_spi_speed(m_low_spi_speed_hz);
     m_chip_selector(ChipSelectState::UNSELECTED);
     for (std::size_t i = 0; i < 10; ++i) {
         m_trancieve_byte(0xFF);
@@ -77,12 +77,12 @@ void SdSpiDriver::init_card() {
 
     m_chip_selector(ChipSelectState::SELECTED);
 
-    const auto cmd0_response = send_command<1>(SdCommand::CMD0, 0, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd0_response = send_command<1>(SdCommand::CMD0, 0, m_max_r1_receive_attempts);
     if (cmd0_response[0] != 1) {
         throw std::runtime_error("Failed to initialize SD card: CMD0 did not return expected response");
     }
 
-    const auto cmd8_response = send_command<5>(SdCommand::CMD8, 0x000001AA, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd8_response = send_command<5>(SdCommand::CMD8, 0x000001AA, m_max_r1_receive_attempts);
     if (1 != cmd8_response[0]) {
         init_sd_v1();
         return;
@@ -105,11 +105,11 @@ void SdSpiDriver::init_sd_v2() {
     std::array<std::uint8_t, 1> acmd41_response;
     std::size_t attempt = 10000UL;
     while (attempt--) {
-        const auto cmd55_response = send_command<1>(SdCommand::CMD55, 0, RESPONSE_MAX_ATTEMPTS);
+        const auto cmd55_response = send_command<1>(SdCommand::CMD55, 0, m_max_r1_receive_attempts);
         if (cmd55_response[0] > 1) {
             continue;
         }
-        acmd41_response = send_command<1>(SdCommand::ACMD41, 0x40000000, RESPONSE_MAX_ATTEMPTS);
+        acmd41_response = send_command<1>(SdCommand::ACMD41, 0x40000000, m_max_r1_receive_attempts);
         if (acmd41_response[0] == 0x00) {
             break;
         }
@@ -118,7 +118,7 @@ void SdSpiDriver::init_sd_v2() {
     if (acmd41_response[0] != 0x00) {
         throw std::runtime_error("Failed to initialize SD card: ACMD41 did not return expected response");
     }
-    const auto cmd58_response = send_command<5>(SdCommand::CMD58, 0, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd58_response = send_command<5>(SdCommand::CMD58, 0, m_max_r1_receive_attempts);
     if (cmd58_response[0] != 0x00) {
         throw std::runtime_error("Failed to initialize SD card: CMD58 did not return expected response");
     }
@@ -128,7 +128,7 @@ void SdSpiDriver::init_sd_v2() {
     } else {
         m_address_mode = AddressMode::BYTE_ADDRESSING;
     }
-    const auto cmd16_response = send_command<1>(SdCommand::CMD16, BLOCK_SIZE, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd16_response = send_command<1>(SdCommand::CMD16, BLOCK_SIZE, m_max_r1_receive_attempts);
     if (cmd16_response[0] != 0x00) {
         throw std::runtime_error("Failed to initialize SD card: CMD16 did not return expected response");
     }
@@ -143,7 +143,7 @@ void SdSpiDriver::read_csd_sdhc_sdxc() {
         CSD_LENGTH = 16,
         RESPONSE_LENGTH = R1_RESPONSE_LENGTH + DATA_TOKEN_MAX_LENGTH + CSD_LENGTH,
     };
-    const auto cmd9_response = send_command<RESPONSE_LENGTH>(SdCommand::CMD9, 0, RESPONSE_MAX_ATTEMPTS);
+    const auto cmd9_response = send_command<RESPONSE_LENGTH>(SdCommand::CMD9, 0, m_max_r1_receive_attempts);
     if (cmd9_response[0] != 0x00) {
         throw std::runtime_error("Failed to read SD card CSD register: CMD9 did not return expected response");
     }
