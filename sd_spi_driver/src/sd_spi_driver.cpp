@@ -179,3 +179,31 @@ void SdSpiDriver::release_card(const std::uint32_t attempts) const {
         throw std::runtime_error("Failed to release SD card: did not receive expected byte after " + std::to_string(attempts) + " attempts");
     }
 }
+
+std::uint32_t SdSpiDriver::calculate_address(const std::uint32_t block_address, const AddressMode address_mode) {
+    switch (address_mode) {
+    case AddressMode::BYTE_ADDRESSING:
+        return block_address * BLOCK_SIZE;
+    case AddressMode::BLOCK_ADDRESSING:
+        return block_address;
+    default:
+        throw std::invalid_argument("invalid AddressMode provided to calculate_address");
+    }
+}
+
+std::uint8_t SdSpiDriver::calculate_crc(const SdCommand cmd, const std::uint32_t arg) {
+    (void)arg;
+    enum: std::uint8_t {
+        DUMMY_CRC = 0x01,
+        CMD0_CRC = 0x95,
+        CMD8_CRC = 0x87
+    };
+    switch (cmd) {
+    case SdCommand::CMD0:
+        return CMD0_CRC;
+    case SdCommand::CMD8:
+        return CMD8_CRC;
+    default:
+        return DUMMY_CRC;
+    }
+}

@@ -91,37 +91,11 @@ namespace sd_spi_driver {
         void init_sd_v2();
         void read_csd_sdhc_sdxc();
         void release_card(const std::uint32_t attempts) const;
-
-        static std::uint32_t calculate_address(const std::uint32_t block_address, const AddressMode address_mode) {
-            switch (address_mode) {
-            case AddressMode::BYTE_ADDRESSING:
-                return block_address * BLOCK_SIZE;
-            case AddressMode::BLOCK_ADDRESSING:
-                return block_address;
-            default:
-                throw std::invalid_argument("invalid AddressMode provided to calculate_address");
-            }
-        }
-
-        static std::uint8_t calculate_crc(const SdCommand cmd, std::uint32_t arg) {
-            (void)arg;
-            enum: std::uint8_t {
-                DUMMY_CRC = 0x01,
-                CMD0_CRC = 0x95,
-                CMD8_CRC = 0x87
-            };
-            switch (cmd) {
-            case SdCommand::CMD0:
-                return CMD0_CRC;
-            case SdCommand::CMD8:
-                return CMD8_CRC;
-            default:
-                return DUMMY_CRC;
-            }
-        }
+        static std::uint32_t calculate_address(const std::uint32_t block_address, const AddressMode address_mode);
+        static std::uint8_t calculate_crc(const SdCommand cmd, const std::uint32_t arg);
 
         template <std::size_t Nresp>
-        std::array<std::uint8_t, Nresp> send_command(const SdCommand cmd, std::uint32_t arg, const std::size_t read_attempts) const {
+        std::array<std::uint8_t, Nresp> send_command(const SdCommand cmd, const std::uint32_t arg, const std::size_t read_attempts) const {
             m_chip_selector(ChipSelectState::UNSELECTED);
             m_trancieve_byte(0xFF);
             m_chip_selector(ChipSelectState::SELECTED);
